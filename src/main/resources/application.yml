@@ -1,0 +1,38 @@
+server:
+  port: 8088
+  ssl:
+    enabled: true
+    key-store: classpath:keystore/localhost.p12
+    key-store-password: changeit-dev
+    key-store-type: PKCS12
+    key-alias: usermanagement
+
+spring:
+  application:
+    name: UserProjectJdbcSQLServer
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=UserProject2;encrypt=false;trustServerCertificate=true
+    username: aziz
+    password: '!!Dat@Log8061**'
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  file:
+    name: logs/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 300MB
