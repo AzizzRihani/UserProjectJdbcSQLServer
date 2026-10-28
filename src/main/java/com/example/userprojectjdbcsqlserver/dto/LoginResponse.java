@@ -14,4 +14,6 @@ public class LoginResponse {
     private String prenom;
     private List<RoleSummary> roles;
     private List<String> permissions;
+    // Fonctions (entrees de menu) du profil, liste plate ; vide = menu vide.
+    private List<FonctionResponse> functions;
 }

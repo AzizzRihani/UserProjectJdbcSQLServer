@@ -52,6 +52,40 @@ INSERT INTO dbo.permissions (code, module, label) VALUES ('USER_REVOKE_ACCESS', 
 IF NOT EXISTS (SELECT 1 FROM dbo.permissions WHERE code = 'ROLE_MANAGE')
 INSERT INTO dbo.permissions (code, module, label) VALUES ('ROLE_MANAGE', 'ADMINISTRATION', 'Gerer les roles et leurs permissions');
 
+IF NOT EXISTS (SELECT 1 FROM dbo.permissions WHERE code = 'PROFILE_MANAGE')
+INSERT INTO dbo.permissions (code, module, label) VALUES ('PROFILE_MANAGE', 'ADMINISTRATION', 'Gerer les profils et leurs fonctions');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.permissions WHERE code = 'USER_ASSIGN_PROFILE')
+INSERT INTO dbo.permissions (code, module, label) VALUES ('USER_ASSIGN_PROFILE', 'USER', 'Affecter un profil a un utilisateur');
+
+-- Profils "But" : arbre des fonctions (menus) sur 2 niveaux, groupes d'abord puis feuilles (parent retrouve par
+-- code). IF NOT EXISTS ne met jamais a jour une ligne existante : si un libelle ou une route change ici, ajouter
+-- un UPDATE idempotent (les libelles affiches sont traduits cote frontend, cles menu.<CODE>).
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'REFERENTIEL')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) VALUES ('REFERENTIEL', 'Referentiel', NULL, NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'ADMINISTRATION')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) VALUES ('ADMINISTRATION', 'Administration', NULL, NULL, 2);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'BANQUES')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'BANQUES', 'Banques', id, '/banques', 1 FROM dbo.fonctions WHERE code = 'REFERENTIEL';
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'COMPTES')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'COMPTES', 'Comptes', id, '/comptes', 2 FROM dbo.fonctions WHERE code = 'REFERENTIEL';
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'UTILISATEURS')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'UTILISATEURS', 'Utilisateurs', id, '/users', 1 FROM dbo.fonctions WHERE code = 'ADMINISTRATION';
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'ROLES')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'ROLES', 'Roles', id, '/roles', 2 FROM dbo.fonctions WHERE code = 'ADMINISTRATION';
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'PROFILS')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'PROFILS', 'Profils', id, '/profiles', 3 FROM dbo.fonctions WHERE code = 'ADMINISTRATION';
+
+-- SUPER_ADMIN = "profil 0" : voit toutes les fonctions (drapeau tout_voir), aucune ligne dans profil_fonctions.
+IF NOT EXISTS (SELECT 1 FROM dbo.profils WHERE code = 'SUPER_ADMIN')
+INSERT INTO dbo.profils (code, label, valide, tout_voir) VALUES ('SUPER_ADMIN', 'Super administrateur', 1, 1);
+
 -- ADMIN recoit toutes les permissions existantes.
 INSERT INTO dbo.role_permissions (role_id, permission_id)
 SELECT r.id, p.id
@@ -116,7 +150,7 @@ VALUES (
     N'admin@example.com',
     30,
     N'0600000000',
-    N'$argon2id$v=19$m=16384,t=2,p=1$BwkgUyQx5H+yq5JzUgVoYA$U/Dfl2m5Ng6SjrU1CRsdc74xKrzQWPlgPrNlKU0yWNo'
+    N'$argon2id$v=19$m=16384,t=2,p=1$CvjoETl/TZjWBH8Ha2v5BQ$BU1RT1DUQrOstlU75UeHcuQsL3Bc1BCK6snCCuwkhO8'
 );
 
 -- Role ADMIN de l'admin d'amorcage : insere seulement s'il n'a AUCUNE ligne user_roles (un simple
@@ -125,3 +159,11 @@ IF EXISTS (SELECT 1 FROM dbo.utilisateurs WHERE email = N'admin@example.com')
 AND NOT EXISTS (SELECT 1 FROM dbo.user_roles ur JOIN dbo.utilisateurs u ON u.id = ur.user_id WHERE u.email = N'admin@example.com')
 INSERT INTO dbo.user_roles (user_id, role_id)
 SELECT u.id, r.id FROM dbo.utilisateurs u CROSS JOIN dbo.roles r WHERE u.email = N'admin@example.com' AND r.code = 'ADMIN';
+
+-- Profil SUPER_ADMIN de l'admin d'amorcage, avec une garde "recuperation de verrouillage" : affecte seulement si
+-- PLUS PERSONNE n'a un profil "voit tout" (sinon l'admin aurait de nouveau SUPER_ADMIN a chaque demarrage,
+-- meme apres une reaffectation volontaire). L'auto-affectation etant interdite par l'API, l'admin ne peut pas
+-- se verrouiller lui-meme ; ce cas ne sert qu'a retrouver un acces apres un incident.
+IF EXISTS (SELECT 1 FROM dbo.utilisateurs WHERE email = N'admin@example.com')
+AND NOT EXISTS (SELECT 1 FROM dbo.utilisateurs u JOIN dbo.profils p ON p.id = u.profil_id WHERE p.tout_voir = 1)
+UPDATE u SET profil_id = p.id FROM dbo.utilisateurs u CROSS JOIN dbo.profils p WHERE u.email = N'admin@example.com' AND p.code = 'SUPER_ADMIN';

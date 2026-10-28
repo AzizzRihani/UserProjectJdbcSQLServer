@@ -1,5 +1,6 @@
 package com.example.userprojectjdbcsqlserver.repository;
 
+import com.example.userprojectjdbcsqlserver.entity.Profil;
 import com.example.userprojectjdbcsqlserver.entity.Role;
 import com.example.userprojectjdbcsqlserver.entity.User;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,13 @@ public class UserRepositoryJdbc implements UserRepository {
             .age((Integer) rs.getObject("age"))
             .numTel(rs.getString("num_tel"))
             .motDePasse(rs.getString("mot_de_passe"))
+            .profil(rs.getObject("profil_id") == null ? null : Profil.builder()
+                    .id(rs.getLong("profil_id"))
+                    .code(rs.getString("profil_code"))
+                    .label(rs.getString("profil_label"))
+                    .valide(rs.getBoolean("profil_valide"))
+                    .toutVoir(rs.getBoolean("profil_tout_voir"))
+                    .build())
             .build();
 
     private record UserRole(long userId, Role role) {}
@@ -56,25 +64,30 @@ public class UserRepositoryJdbc implements UserRepository {
         this.jdbc = jdbc;
     }
 
-    private static final String SELECT_COLUMNS = "id, nom, prenom, surnom, email, age, num_tel, mot_de_passe";
+    // LEFT JOIN profils : relation plusieurs-a-un, donc sans effet sur OFFSET/FETCH ni sur COUNT. Les colonnes sont
+    // prefixees (u.) : "id" seul serait ambigu avec profils.id.
+    private static final String SELECT_COLUMNS =
+            "u.id, u.nom, u.prenom, u.surnom, u.email, u.age, u.num_tel, u.mot_de_passe, " +
+            "p.id AS profil_id, p.code AS profil_code, p.label AS profil_label, p.valide AS profil_valide, p.tout_voir AS profil_tout_voir";
+    private static final String FROM_CLAUSE = "FROM dbo.utilisateurs u LEFT JOIN dbo.profils p ON p.id = u.profil_id";
 
     // Mappe les proprietes Java (cote Pageable/Sort) vers les vraies colonnes SQL : evite d'injecter
     // un nom de colonne arbitraire venu du client directement dans la clause ORDER BY.
     // mot_de_passe est volontairement absent : aucune raison de trier sur le hash.
     // Pas de tri par role : un utilisateur peut en avoir plusieurs (cle inconnue -> retombe sur id).
     private static final Map<String, String> SORTABLE_COLUMNS = Map.of(
-            "id", "id",
-            "nom", "nom",
-            "prenom", "prenom",
-            "surnom", "surnom",
-            "email", "email",
-            "age", "age",
-            "numTel", "num_tel"
+            "id", "u.id",
+            "nom", "u.nom",
+            "prenom", "u.prenom",
+            "surnom", "u.surnom",
+            "email", "u.email",
+            "age", "u.age",
+            "numTel", "u.num_tel"
     );
 
     @Override
     public List<User> findAll() {
-        String sql = "SELECT " + SELECT_COLUMNS + " FROM dbo.utilisateurs ORDER BY id";
+        String sql = "SELECT " + SELECT_COLUMNS + " " + FROM_CLAUSE + " ORDER BY u.id";
         List<User> users = jdbc.query(sql, ROW_MAPPER);
         // Tous les utilisateurs : pas de "IN (:ids)" (limite de ~2100 parametres de SQL Server).
         attachRoles(users, null);
@@ -85,7 +98,7 @@ public class UserRepositoryJdbc implements UserRepository {
         public Page<User> findAllP(Pageable pageable) {
             Long total = jdbc.queryForObject("SELECT COUNT(*) FROM dbo.utilisateurs", new MapSqlParameterSource(), Long.class);
 
-            String sql = "SELECT " + SELECT_COLUMNS + " FROM dbo.utilisateurs " +
+            String sql = "SELECT " + SELECT_COLUMNS + " " + FROM_CLAUSE + " " +
                     "ORDER BY " + buildOrderByClause(pageable.getSort()) + " " +
                     "OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY";
             MapSqlParameterSource params = new MapSqlParameterSource()
@@ -98,10 +111,10 @@ public class UserRepositoryJdbc implements UserRepository {
 
     private String buildOrderByClause(Sort sort) {
         if (sort.isUnsorted()) {
-            return "id ASC";
+            return "u.id ASC";
         }
         return sort.stream()
-                .map(order -> SORTABLE_COLUMNS.getOrDefault(order.getProperty(), "id")
+                .map(order -> SORTABLE_COLUMNS.getOrDefault(order.getProperty(), "u.id")
                         + (order.isAscending() ? " ASC" : " DESC"))
                 .collect(Collectors.joining(", "));
     }
@@ -128,7 +141,7 @@ public class UserRepositoryJdbc implements UserRepository {
 
     @Override
     public Optional<User> findById(Long id) {
-        String sql = "SELECT " + SELECT_COLUMNS + " FROM dbo.utilisateurs WHERE id = :id";
+        String sql = "SELECT " + SELECT_COLUMNS + " " + FROM_CLAUSE + " WHERE u.id = :id";
         List<User> results = jdbc.query(sql, new MapSqlParameterSource("id", id), ROW_MAPPER);
         attachRoles(results, List.of(id));
         return results.stream().findFirst();
@@ -136,7 +149,7 @@ public class UserRepositoryJdbc implements UserRepository {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        String sql = "SELECT " + SELECT_COLUMNS + " FROM dbo.utilisateurs WHERE email = :email";
+        String sql = "SELECT " + SELECT_COLUMNS + " " + FROM_CLAUSE + " WHERE u.email = :email";
         List<User> results = jdbc.query(sql, new MapSqlParameterSource("email", email), ROW_MAPPER);
         attachRoles(results, results.stream().map(User::getId).toList());
         return results.stream().findFirst();
@@ -213,6 +226,21 @@ public class UserRepositoryJdbc implements UserRepository {
                     .toArray(SqlParameterSource[]::new);
             jdbc.batchUpdate("INSERT INTO dbo.user_roles (user_id, role_id) VALUES (:userId, :roleId)", batch);
         }
+    }
+
+    @Override
+    public boolean existsByProfilId(Long profilId) {
+        String sql = "SELECT COUNT(*) FROM dbo.utilisateurs WHERE profil_id = :profilId";
+        Integer count = jdbc.queryForObject(sql, new MapSqlParameterSource("profilId", profilId), Integer.class);
+        return count != null && count > 0;
+    }
+
+    // Seul endroit qui ecrit profil_id : save/update d'un utilisateur ne le touchent jamais, donc une modification
+    // ordinaire de la fiche ne peut pas changer le profil (l'affectation a son propre endpoint et ses propres droits).
+    @Override
+    public void updateProfil(Long userId, Long profilId) {
+        jdbc.update("UPDATE dbo.utilisateurs SET profil_id = :profilId WHERE id = :userId",
+                new MapSqlParameterSource().addValue("profilId", profilId).addValue("userId", userId));
     }
 
     @Override

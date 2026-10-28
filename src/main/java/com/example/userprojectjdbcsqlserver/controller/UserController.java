@@ -1,10 +1,13 @@
 package com.example.userprojectjdbcsqlserver.controller;
 
+import com.example.userprojectjdbcsqlserver.dto.ProfilAssignRequest;
 import com.example.userprojectjdbcsqlserver.dto.UserCreateRequest;
 import com.example.userprojectjdbcsqlserver.dto.UserResponse;
 import com.example.userprojectjdbcsqlserver.security.SecurityUser;
 import com.example.userprojectjdbcsqlserver.service.AuthService;
 import com.example.userprojectjdbcsqlserver.service.UserService;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
+import com.example.userprojectjdbcsqlserver.security.FunctionExempt;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
@@ -20,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @Tag(name = "Utilisateurs")
+@RequiresFunction("UTILISATEURS")
 public class UserController {
 
     private final UserService userService;
@@ -40,7 +44,7 @@ public class UserController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister tous les utilisateurs (tout utilisateur connecte)")
+    @Operation(summary = "Lister tous les utilisateurs")
     public List<UserResponse> findAll(@AuthenticationPrincipal SecurityUser currentUser) {
         return userService.findAll(currentUser.getUsername());
     }
@@ -53,6 +57,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @FunctionExempt
     @Operation(summary = "Consulter son propre profil")
     public UserResponse me(@AuthenticationPrincipal SecurityUser currentUser) {
         return userService.me(currentUser.getId(), currentUser.getUsername());
@@ -71,6 +76,15 @@ public class UserController {
                                 @RequestBody UserCreateRequest request,
                                 @AuthenticationPrincipal SecurityUser currentUser) {
         return userService.update(id, request, currentUser.getId(), currentUser.getUsername());
+    }
+
+    @PutMapping("/{id}/profile")
+    @PreAuthorize("hasAuthority('USER_ASSIGN_PROFILE')")
+    @Operation(summary = "Affecter (ou retirer, profilId null) le profil de menus d'un utilisateur (sauf sur son propre compte)")
+    public UserResponse assignProfile(@PathVariable Long id,
+                                      @RequestBody ProfilAssignRequest request,
+                                      @AuthenticationPrincipal SecurityUser currentUser) {
+        return userService.assignProfile(id, request.getProfilId(), currentUser);
     }
 
     @DeleteMapping("/{id}")

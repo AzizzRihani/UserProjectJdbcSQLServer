@@ -59,6 +59,50 @@ CREATE TABLE dbo.user_roles (
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_user_roles_role_id' AND object_id = OBJECT_ID('dbo.user_roles'))
 CREATE INDEX IX_user_roles_role_id ON dbo.user_roles (role_id);
 
+-- Profils "But" : un profil = ensemble de FONCTIONS (entrees de menu, en arbre) qu'un utilisateur peut voir et
+-- ouvrir. Un utilisateur a UN seul profil. Les droits d'agir restent les permissions (roles) : le profil ne
+-- donne que le menu. Memes regles que plus haut : gardes "IF ... <instruction unique>" (script decoupe sur ";").
+IF OBJECT_ID('dbo.fonctions', 'U') IS NULL
+CREATE TABLE dbo.fonctions (
+    id        BIGINT IDENTITY(1,1) PRIMARY KEY,
+    code      NVARCHAR(50) NOT NULL,
+    label     NVARCHAR(100) NOT NULL,
+    parent_id BIGINT NULL,
+    route     NVARCHAR(100) NULL,
+    ordre     INT NOT NULL DEFAULT 0,
+    CONSTRAINT UQ_fonctions_code UNIQUE (code),
+    CONSTRAINT FK_fonctions_parent FOREIGN KEY (parent_id) REFERENCES dbo.fonctions (id),
+    CONSTRAINT CK_fonctions_parent CHECK (parent_id IS NULL OR parent_id <> id)
+);
+
+-- "Profil 0" (super-administrateur, voit toutes les fonctions) = drapeau tout_voir sur le profil SUPER_ADMIN
+-- seede, plutot qu'un id litteral 0 (evite IDENTITY_INSERT).
+IF OBJECT_ID('dbo.profils', 'U') IS NULL
+CREATE TABLE dbo.profils (
+    id       BIGINT IDENTITY(1,1) PRIMARY KEY,
+    code     NVARCHAR(50) NOT NULL,
+    label    NVARCHAR(100) NOT NULL,
+    valide   BIT NOT NULL DEFAULT 1,
+    tout_voir BIT NOT NULL DEFAULT 0,
+    CONSTRAINT UQ_profils_code UNIQUE (code)
+);
+
+IF OBJECT_ID('dbo.profil_fonctions', 'U') IS NULL
+CREATE TABLE dbo.profil_fonctions (
+    profil_id   BIGINT NOT NULL,
+    fonction_id BIGINT NOT NULL,
+    PRIMARY KEY (profil_id, fonction_id),
+    CONSTRAINT FK_profil_fonctions_profil FOREIGN KEY (profil_id) REFERENCES dbo.profils (id) ON DELETE CASCADE,
+    CONSTRAINT FK_profil_fonctions_fonction FOREIGN KEY (fonction_id) REFERENCES dbo.fonctions (id)
+);
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_profil_fonctions_fonction_id' AND object_id = OBJECT_ID('dbo.profil_fonctions'))
+CREATE INDEX IX_profil_fonctions_fonction_id ON dbo.profil_fonctions (fonction_id);
+
+-- Profil de l'utilisateur (NULL = aucun profil = menu vide). Pas de cascade : un profil utilise ne se supprime pas.
+IF COL_LENGTH('dbo.utilisateurs', 'profil_id') IS NULL
+ALTER TABLE dbo.utilisateurs ADD profil_id BIGINT NULL CONSTRAINT FK_utilisateurs_profil FOREIGN KEY REFERENCES dbo.profils (id);
+
 CREATE TABLE dbo.banque (
     id            BIGINT IDENTITY(1,1) PRIMARY KEY,
     nom           NVARCHAR(150) NOT NULL,

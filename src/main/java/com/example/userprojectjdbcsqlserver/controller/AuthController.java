@@ -5,6 +5,7 @@ import com.example.userprojectjdbcsqlserver.dto.LoginResponse;
 import com.example.userprojectjdbcsqlserver.dto.SessionResponse;
 import com.example.userprojectjdbcsqlserver.security.SecurityUser;
 import com.example.userprojectjdbcsqlserver.service.AuthService;
+import com.example.userprojectjdbcsqlserver.security.FunctionExempt;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Authentification")
+@FunctionExempt
 public class AuthController {
 
     private final AuthService authService;

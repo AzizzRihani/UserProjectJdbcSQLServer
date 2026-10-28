@@ -5,6 +5,7 @@ import com.example.userprojectjdbcsqlserver.dto.RolePermissionsRequest;
 import com.example.userprojectjdbcsqlserver.dto.RoleResponse;
 import com.example.userprojectjdbcsqlserver.dto.RoleUpdateRequest;
 import com.example.userprojectjdbcsqlserver.service.RoleService;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/roles")
 @Tag(name = "Roles")
+@RequiresFunction("ROLES")
 public class RoleController {
 
     private final RoleService roleService;
@@ -30,6 +32,7 @@ public class RoleController {
     // roles ne sont pas sensibles ; seule la gestion (creer/modifier/supprimer/assigner des
     // permissions) l'est.
     @GetMapping
+    @RequiresFunction({"UTILISATEURS", "ROLES"})
     @Operation(summary = "Lister tous les roles avec leurs permissions")
     public List<RoleResponse> findAll() {
         return roleService.findAll();

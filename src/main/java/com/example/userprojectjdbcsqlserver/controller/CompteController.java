@@ -3,6 +3,7 @@ package com.example.userprojectjdbcsqlserver.controller;
 import com.example.userprojectjdbcsqlserver.dto.CompteRequest;
 import com.example.userprojectjdbcsqlserver.dto.CompteResponse;
 import com.example.userprojectjdbcsqlserver.service.CompteService;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/comptes")
 @Tag(name = "Comptes bancaires")
+@RequiresFunction("COMPTES")
 public class CompteController {
 
     private final CompteService compteService;

@@ -12,9 +12,13 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import com.example.userprojectjdbcsqlserver.security.FunctionExempt;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +29,32 @@ public class OpenApiConfig {
 
     private static final String COOKIE_SCHEME = "sessionCookie";
     private static final String LOGOUT_PATH = "/auth/logout";
+
+    // Ajoute a chaque operation protegee par @RequiresFunction la fonction de profil exigee et la reponse 403 :
+    // la documentation reflete la verification faite par FunctionAccessInterceptor.
+    @Bean
+    public OperationCustomizer functionRequirementCustomizer() {
+        return (operation, handlerMethod) -> {
+            if (AnnotatedElementUtils.hasAnnotation(handlerMethod.getMethod(), FunctionExempt.class)) {
+                return operation;
+            }
+            RequiresFunction required = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getMethod(), RequiresFunction.class);
+            if (required == null) {
+                required = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), RequiresFunction.class);
+            }
+            if (required == null) {
+                return operation;
+            }
+            String functions = String.join(" ou ", required.value());
+            String note = "Necessite la fonction " + functions + " dans le profil de l'utilisateur (sinon 403 FUNCTION_ACCESS_DENIED).";
+            operation.setDescription(operation.getDescription() == null ? note : operation.getDescription() + "\n\n" + note);
+            if (operation.getResponses() == null) {
+                operation.setResponses(new ApiResponses());
+            }
+            operation.getResponses().addApiResponse("403", new ApiResponse().description("Fonction absente du profil, ou permission manquante"));
+            return operation;
+        };
+    }
 
     @Bean
     public OpenAPI userManagementOpenApi() {

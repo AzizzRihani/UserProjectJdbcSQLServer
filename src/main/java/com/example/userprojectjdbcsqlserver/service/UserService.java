@@ -2,15 +2,22 @@ package com.example.userprojectjdbcsqlserver.service;
 
 import com.example.userprojectjdbcsqlserver.dto.UserCreateRequest;
 import com.example.userprojectjdbcsqlserver.dto.UserResponse;
+import com.example.userprojectjdbcsqlserver.entity.Profil;
 import com.example.userprojectjdbcsqlserver.entity.Role;
 import com.example.userprojectjdbcsqlserver.entity.User;
 import com.example.userprojectjdbcsqlserver.exception.EmailAlreadyExistsException;
+import com.example.userprojectjdbcsqlserver.exception.PasswordRequiredOnEmailChangeException;
+import com.example.userprojectjdbcsqlserver.exception.ProfilAssignForbiddenException;
+import com.example.userprojectjdbcsqlserver.exception.ProfilNotFoundException;
 import com.example.userprojectjdbcsqlserver.exception.RoleNotFoundException;
 import com.example.userprojectjdbcsqlserver.exception.SelfManagementForbiddenException;
 import com.example.userprojectjdbcsqlserver.exception.UserNotFoundException;
 import com.example.userprojectjdbcsqlserver.exception.UserRolesRequiredException;
+import com.example.userprojectjdbcsqlserver.repository.ProfilRepository;
 import com.example.userprojectjdbcsqlserver.repository.RoleRepository;
 import com.example.userprojectjdbcsqlserver.repository.UserRepository;
+import com.example.userprojectjdbcsqlserver.security.ClientPasswordHash;
+import com.example.userprojectjdbcsqlserver.security.SecurityUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,11 +38,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProfilRepository profilRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, ProfilRepository profilRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.profilRepository = profilRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -79,7 +89,9 @@ public class UserService {
                 .email(request.getEmail())
                 .age(request.getAge())
                 .numTel(request.getNumTel())
-                .motDePasse(passwordEncoder.encode(request.getMotDePasse()))
+                // motDePasse = hash Argon2id calcule par le navigateur (64 hexa) : on le re-hache ici avec
+                // le sel du serveur ; le mot de passe en clair n'arrive jamais jusqu'a ce service.
+                .motDePasse(passwordEncoder.encode(ClientPasswordHash.requireValid(request.getMotDePasse())))
                 .roles(new ArrayList<>(roles))
                 .build();
 
@@ -100,6 +112,18 @@ public class UserService {
             throw new EmailAlreadyExistsException(request.getEmail());
         }
 
+        boolean passwordProvided = request.getMotDePasse() != null && !request.getMotDePasse().isBlank();
+        // Le hash envoye par le navigateur est calcule avec un sel derive de l'email : si l'email change, l'ancien
+        // hash stocke ne serait plus verifiable. Un nouveau mot de passe (donc un nouveau hash) est obligatoire.
+        boolean emailChanged = request.getEmail() != null
+                && !request.getEmail().trim().equalsIgnoreCase(existing.getEmail().trim());
+        if (emailChanged && !passwordProvided) {
+            throw new PasswordRequiredOnEmailChangeException();
+        }
+        if (passwordProvided) {
+            ClientPasswordHash.requireValid(request.getMotDePasse());
+        }
+
         existing.setNom(request.getNom());
         existing.setPrenom(request.getPrenom());
         existing.setSurnom(request.getSurnom());
@@ -111,7 +135,7 @@ public class UserService {
         if (request.getRoleIds() != null) {
             existing.setRoles(new ArrayList<>(resolveRoles(request.getRoleIds())));
         }
-        if (request.getMotDePasse() != null && !request.getMotDePasse().isBlank()) {
+        if (passwordProvided) {
             existing.setMotDePasse(passwordEncoder.encode(request.getMotDePasse()));
         }
 
@@ -119,6 +143,38 @@ public class UserService {
         log.info("Utilisateur '{}' a modifie l'utilisateur '{}' (id={}, roles {} -> {})",
                 actorEmail, updated.getEmail(), id, rolesBefore, roleCodes(updated.getRoles()));
         return UserResponse.fromEntity(updated);
+    }
+
+    // Affectation du profil (menus) d'un utilisateur, endpoint dedie protege par USER_ASSIGN_PROFILE. profilId == null
+    // retire le profil (menu vide). Le profil n'est JAMAIS modifie par create/update : une edition ordinaire de la
+    // fiche ne peut pas s'accorder de menus.
+    @Transactional
+    public UserResponse assignProfile(Long targetId, Long profilId, SecurityUser actor) {
+        // Comme pour la modification/suppression : on ne change pas son propre profil (evite de se verrouiller).
+        if (targetId.equals(actor.getId())) {
+            throw new SelfManagementForbiddenException();
+        }
+
+        User target = getOrThrow(targetId);
+        Profil newProfil = profilId == null ? null
+                : profilRepository.findById(profilId).orElseThrow(() -> new ProfilNotFoundException(profilId));
+        Profil oldProfil = target.getProfil();
+
+        // Anti-escalade : accorder ou retirer le profil "voit tout" n'est permis qu'a quelqu'un qui l'a lui-meme.
+        // Sans cela, tout detenteur de USER_ASSIGN_PROFILE pourrait se fabriquer un super-administrateur.
+        boolean touchesSuperAdmin = isToutVoir(oldProfil) || isToutVoir(newProfil);
+        if (touchesSuperAdmin && !isToutVoir(actor.getUser().getProfil())) {
+            throw new ProfilAssignForbiddenException();
+        }
+
+        userRepository.updateProfil(targetId, profilId);
+        log.info("Utilisateur '{}' a modifie le profil de '{}' (id={}) : {} -> {}", actor.getUsername(), target.getEmail(), targetId,
+                oldProfil != null ? oldProfil.getCode() : "aucun", newProfil != null ? newProfil.getCode() : "aucun");
+        return UserResponse.fromEntity(getOrThrow(targetId));
+    }
+
+    private static boolean isToutVoir(Profil profil) {
+        return profil != null && Boolean.TRUE.equals(profil.getToutVoir());
     }
 
     public void delete(Long id, Long currentUserId, String actorEmail) {

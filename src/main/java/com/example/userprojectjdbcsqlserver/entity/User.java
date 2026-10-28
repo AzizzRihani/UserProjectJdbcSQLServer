@@ -26,4 +26,6 @@ public class User implements Serializable {
     private transient String motDePasse;
     @Builder.Default
     private List<Role> roles = new ArrayList<>();
+    // Profil (menus) de l'utilisateur : null = aucun profil = menu vide. Charge avec l'utilisateur (LEFT JOIN).
+    private Profil profil;
 }

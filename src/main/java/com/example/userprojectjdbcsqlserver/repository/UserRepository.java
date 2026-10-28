@@ -15,6 +15,8 @@ public interface UserRepository {
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, Long id);
     boolean existsByRoleId(Long roleId);
+    boolean existsByProfilId(Long profilId);
+    void updateProfil(Long userId, Long profilId);
     User save(User user);
     User update(User user);
     void deleteById(Long id);

@@ -28,6 +28,11 @@ public abstract class ApiException extends RuntimeException {
         return messageKey;
     }
 
+    // Code machine optionnel (surcharge dans les sous-classes dont le frontend doit reconnaitre le cas).
+    public String getCode() {
+        return null;
+    }
+
     public Object[] getArgs() {
         return args;
     }

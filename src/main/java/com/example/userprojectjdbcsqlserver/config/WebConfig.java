@@ -3,7 +3,10 @@ package com.example.userprojectjdbcsqlserver.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import com.example.userprojectjdbcsqlserver.security.FunctionAccessInterceptor;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import java.util.List;
@@ -15,7 +18,19 @@ import java.util.Locale;
 // (Spring tente de le construire comme un bean classique, alors que c'est une interface).
 @Configuration
 @EnableSpringDataWebSupport
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
+
+    private final FunctionAccessInterceptor functionAccessInterceptor;
+
+    public WebConfig(FunctionAccessInterceptor functionAccessInterceptor) {
+        this.functionAccessInterceptor = functionAccessInterceptor;
+    }
+
+    // Verification de la fonction du profil sur les ecrans (@RequiresFunction), avant les controleurs.
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(functionAccessInterceptor);
+    }
 
     // Declare explicitement plutot que de compter sur l'autoconfiguration Boot (meme precedent
     // que le cookie de session dans SecurityConfig) : API REST stateless, la langue vient du

@@ -26,7 +26,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, HttpServletRequest request) {
         String message = messageSource.getMessage(ex.getMessageKey(), ex.getArgs(), LocaleContextHolder.getLocale());
-        return build(ex.getStatus(), message, request);
+        ErrorResponse body = ErrorResponse.of(ex.getStatus(), message, request.getRequestURI(), ex.getCode());
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     @ExceptionHandler({AccessDeniedException.class})

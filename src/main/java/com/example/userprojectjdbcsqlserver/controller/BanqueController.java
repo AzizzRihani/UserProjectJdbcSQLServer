@@ -3,6 +3,7 @@ package com.example.userprojectjdbcsqlserver.controller;
 import com.example.userprojectjdbcsqlserver.dto.BanqueRequest;
 import com.example.userprojectjdbcsqlserver.dto.BanqueResponse;
 import com.example.userprojectjdbcsqlserver.service.BanqueService;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/banques")
 @Tag(name = "Banques")
+@RequiresFunction("BANQUES")
 public class BanqueController {
 
     private final BanqueService banqueService;
@@ -33,7 +35,9 @@ public class BanqueController {
         return banqueService.create(request);
     }
 
+    // Lookup (listes deroulantes / libelles) utilise aussi par les ecrans Comptes : la fonction COMPTES suffit.
     @GetMapping
+    @RequiresFunction({"BANQUES", "COMPTES"})
     @PreAuthorize("hasAuthority('BANQUE_READ')")
     @Operation(summary = "Lister toutes les banques (sans pagination - utilise pour les listes deroulantes)")
     public List<BanqueResponse> findAll() {

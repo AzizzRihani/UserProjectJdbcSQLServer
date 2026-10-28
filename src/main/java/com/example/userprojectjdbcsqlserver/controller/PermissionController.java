@@ -2,6 +2,7 @@ package com.example.userprojectjdbcsqlserver.controller;
 
 import com.example.userprojectjdbcsqlserver.dto.PermissionResponse;
 import com.example.userprojectjdbcsqlserver.repository.PermissionRepository;
+import com.example.userprojectjdbcsqlserver.security.RequiresFunction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequestMapping("/permissions")
 @Tag(name = "Permissions")
 @PreAuthorize("hasAuthority('ROLE_MANAGE')")
+@RequiresFunction("ROLES")
 public class PermissionController {
 
     private final PermissionRepository permissionRepository;

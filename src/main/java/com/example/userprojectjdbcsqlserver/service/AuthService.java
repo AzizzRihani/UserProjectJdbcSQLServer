@@ -2,16 +2,20 @@ package com.example.userprojectjdbcsqlserver.service;
 
 import com.example.userprojectjdbcsqlserver.config.SecurityConfig;
 import com.example.userprojectjdbcsqlserver.dto.LoginRequest;
+import com.example.userprojectjdbcsqlserver.dto.FonctionResponse;
 import com.example.userprojectjdbcsqlserver.dto.LoginResponse;
 import com.example.userprojectjdbcsqlserver.dto.RoleSummary;
 import com.example.userprojectjdbcsqlserver.dto.SessionResponse;
 import com.example.userprojectjdbcsqlserver.entity.Role;
 import com.example.userprojectjdbcsqlserver.entity.User;
+import com.example.userprojectjdbcsqlserver.exception.LoginTimestampInvalidException;
 import com.example.userprojectjdbcsqlserver.exception.SelfManagementForbiddenException;
 import com.example.userprojectjdbcsqlserver.exception.SessionNotFoundException;
 import com.example.userprojectjdbcsqlserver.exception.UserNotFoundException;
+import com.example.userprojectjdbcsqlserver.repository.ProfilRepository;
 import com.example.userprojectjdbcsqlserver.repository.RoleRepository;
 import com.example.userprojectjdbcsqlserver.repository.UserRepository;
+import com.example.userprojectjdbcsqlserver.security.ClientPasswordHash;
 import com.example.userprojectjdbcsqlserver.security.SecurityUser;
 import com.example.userprojectjdbcsqlserver.security.SessionMetadataStore;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +43,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProfilRepository profilRepository;
     private final AuthenticationManager authenticationManager;
     private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
     private final SecurityContextRepository securityContextRepository;
@@ -47,6 +52,7 @@ public class AuthService {
 
     public AuthService(UserRepository userRepository,
                         RoleRepository roleRepository,
+                        ProfilRepository profilRepository,
                         AuthenticationManager authenticationManager,
                         SessionAuthenticationStrategy sessionAuthenticationStrategy,
                         SecurityContextRepository securityContextRepository,
@@ -54,6 +60,7 @@ public class AuthService {
                         SessionMetadataStore sessionMetadataStore) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.profilRepository = profilRepository;
         this.authenticationManager = authenticationManager;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.securityContextRepository = securityContextRepository;
@@ -61,8 +68,19 @@ public class AuthService {
         this.sessionMetadataStore = sessionMetadataStore;
     }
 
+    // Ecart d'horloge tolere entre le navigateur et le serveur (meme valeur que le vrai TMS : 120 s).
+    // L'horodatage n'est pas lie cryptographiquement au hash : il limite la fenetre de rejeu, rien de plus.
+    private static final long MAX_LOGIN_CLOCK_SKEW_MS = 120_000L;
+
     public LoginResponse    login(LoginRequest request, String userAgent, String ipAddress,
                                 HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+/*        if (request.getTimestamp() == null
+                || Math.abs(System.currentTimeMillis() - request.getTimestamp()) > MAX_LOGIN_CLOCK_SKEW_MS) {
+            throw new LoginTimestampInvalidException();
+        }*/
+        // Le client envoie un hash Argon2id (64 hexa), jamais le mot de passe en clair.
+        ClientPasswordHash.requireValid(request.getMotDePasse());
+
         Authentication authRequest = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getMotDePasse());
         Authentication authResult = authenticationManager.authenticate(authRequest);
 
@@ -78,7 +96,6 @@ public class AuthService {
         User user = ((SecurityUser) authResult.getPrincipal()).getUser();
 
         HttpSession session = httpRequest.getSession();
-        System.out.println(session.getId());
         sessionMetadataStore.put(session.getId(), userAgent, ipAddress);
 
         log.info("Connexion reussie : utilisateur '{}' (roles {})", user.getEmail(),
@@ -142,6 +159,9 @@ public class AuthService {
                 .prenom(user.getPrenom())
                 .roles(RoleSummary.fromEntities(user.getRoles()))
                 .permissions(permissions)
+                // Profil absent, invalide ou vide -> liste vide -> menu vide cote frontend.
+                .functions(FonctionResponse.fromEntities(
+                        profilRepository.findEffectiveFunctions(user.getProfil() != null ? user.getProfil().getId() : null)))
                 .build();
     }
 
