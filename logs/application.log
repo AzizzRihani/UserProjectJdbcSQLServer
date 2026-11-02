@@ -1,6 +1,1 @@
-2026-10-28T00:17:28.331+01:00  WARN 8172 --- [UserProjectJdbcSQLServer] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h24m26s10ms953µs300ns).
-2026-10-28T07:59:52.347+01:00  WARN 8172 --- [UserProjectJdbcSQLServer] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2h38m18s283ms919µs300ns).
-2026-10-28T10:06:34.500+01:00  INFO 8172 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-3] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-10-28T10:06:34.519+01:00  INFO 8172 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-3] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-10-28T10:06:34.578+01:00  INFO 8172 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-3] o.s.web.servlet.DispatcherServlet        : Completed initialization in 58 ms
-2026-10-28T10:06:36.906+01:00  INFO 8172 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-7] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 926 ms
+2026-10-29T09:47:46.768+01:00  WARN 20432 --- [UserProjectJdbcSQLServer] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=10h50m51s697ms808µs400ns).
