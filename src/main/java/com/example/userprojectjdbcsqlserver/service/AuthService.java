@@ -1,6 +1,6 @@
 package com.example.userprojectjdbcsqlserver.service;
 
-import com.example.userprojectjdbcsqlserver.config.SecurityConfig;
+import com.example.userprojectjdbcsqlserver.config.AppProperties;
 import com.example.userprojectjdbcsqlserver.dto.LoginRequest;
 import com.example.userprojectjdbcsqlserver.dto.FonctionResponse;
 import com.example.userprojectjdbcsqlserver.dto.LoginResponse;
@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -33,6 +34,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,6 +51,8 @@ public class AuthService {
     private final SecurityContextRepository securityContextRepository;
     private final SessionRegistry sessionRegistry;
     private final SessionMetadataStore sessionMetadataStore;
+    private final ParameterService parameterService;
+    private final AppProperties appProperties;
 
     public AuthService(UserRepository userRepository,
                         RoleRepository roleRepository,
@@ -57,7 +61,9 @@ public class AuthService {
                         SessionAuthenticationStrategy sessionAuthenticationStrategy,
                         SecurityContextRepository securityContextRepository,
                         SessionRegistry sessionRegistry,
-                        SessionMetadataStore sessionMetadataStore) {
+                        SessionMetadataStore sessionMetadataStore,
+                        ParameterService parameterService,
+                        AppProperties appProperties) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.profilRepository = profilRepository;
@@ -66,6 +72,8 @@ public class AuthService {
         this.securityContextRepository = securityContextRepository;
         this.sessionRegistry = sessionRegistry;
         this.sessionMetadataStore = sessionMetadataStore;
+        this.parameterService = parameterService;
+        this.appProperties = appProperties;
     }
 
     // Ecart d'horloge tolere entre le navigateur et le serveur (meme valeur que le vrai TMS : 120 s).
@@ -82,7 +90,15 @@ public class AuthService {
         ClientPasswordHash.requireValid(request.getMotDePasse());
 
         Authentication authRequest = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getMotDePasse());
-        Authentication authResult = authenticationManager.authenticate(authRequest);
+        Authentication authResult;
+        try {
+            authResult = authenticationManager.authenticate(authRequest);
+        } catch (BadCredentialsException ex) {
+            // Mauvais mot de passe (ou email inconnu, indiscernable ici) : comptabilise l'echec. Un compte deja
+            // verrouille ne passe pas ici (LockedException est levee avant la verification du mot de passe).
+            registerFailedLogin(request.getEmail());
+            throw ex;
+        }
 
         // Cree/enregistre la HttpSession dans le SessionRegistry (login = endpoint JSON custom,
         // pas UsernamePasswordAuthenticationFilter, donc ce cablage n'est pas automatique).
@@ -95,12 +111,29 @@ public class AuthService {
 
         User user = ((SecurityUser) authResult.getPrincipal()).getUser();
 
+        if (user.getFailedAttempts() > 0) {
+            userRepository.resetFailedAttempts(user.getId());
+        }
+
+        // Duree d'inactivite = parametre interne security.sessionTimeoutMinutes lu A CE MOMENT : ne s'applique qu'aux
+        // sessions creees apres une modification du parametre (les sessions deja ouvertes gardent leur duree).
+        Duration sessionTimeout = Duration.ofMinutes(parameterService.getInt(ParameterService.SESSION_TIMEOUT_MINUTES));
         HttpSession session = httpRequest.getSession();
-        sessionMetadataStore.put(session.getId(), userAgent, ipAddress);
+        session.setMaxInactiveInterval((int) sessionTimeout.toSeconds());
+        sessionMetadataStore.put(session.getId(), userAgent, ipAddress, sessionTimeout);
 
         log.info("Connexion reussie : utilisateur '{}' (roles {})", user.getEmail(),
                 user.getRoles().stream().map(Role::getCode).collect(Collectors.joining("+")));
         return toLoginResponse(user);
+    }
+
+    // Parametre interne security.maxFailedAttempts : au N-ieme echec consecutif le compte est verrouille jusqu'a ce
+    // qu'un administrateur le deverrouille (comme DISABLE_USER_AFTER_3 du legacy, mais le seuil est borne et modifiable).
+    private void registerFailedLogin(String email) {
+        int max = parameterService.getInt(ParameterService.MAX_FAILED_ATTEMPTS);
+        if (userRepository.recordFailedLogin(email, max)) {
+            log.warn("Compte verrouille apres {} echecs de connexion consecutifs : utilisateur '{}'", max, email);
+        }
     }
 
     public LoginResponse me(SecurityUser currentUser) {
@@ -161,8 +194,17 @@ public class AuthService {
                 .permissions(permissions)
                 // Profil absent, invalide ou vide -> liste vide -> menu vide cote frontend.
                 .functions(FonctionResponse.fromEntities(
-                        profilRepository.findEffectiveFunctions(user.getProfil() != null ? user.getProfil().getId() : null)))
+                        profilRepository.findEffectiveFunctions(user.getProfil() != null ? user.getProfil().getId() : null)
+                                .stream()
+                                // Module desactive (parametre module.<fonction>.enabled = false) : retire du menu.
+                                .filter(fonction -> parameterService.isModuleEnabled(fonction.getCode()))
+                                .toList()))
                 .build();
+    }
+
+    /** Libelle d'environnement (parametre interne ui.environmentLabel), public : affiche avant la connexion. */
+    public String environmentLabel() {
+        return parameterService.get(ParameterService.ENVIRONMENT_LABEL);
     }
 
     private static List<Long> roleIds(User user) {
@@ -175,7 +217,9 @@ public class AuthService {
         return SessionResponse.builder()
                 .id(info.getSessionId())
                 .dateCreation(metadata != null ? metadata.creationTime() : lastRequest)
-                .dateExpiration(lastRequest.plus(SecurityConfig.SESSION_TIMEOUT))
+                // Duree memorisee au login ; repli sur la valeur par defaut d'initialisation si la session est inconnue
+                // du store (ex. creee avant un redemarrage).
+                .dateExpiration(lastRequest.plus(metadata != null ? metadata.timeout() : appProperties.session().defaultTimeout()))
                 .userAgent(metadata != null ? metadata.userAgent() : null)
                 .adresseIp(metadata != null ? metadata.ipAddress() : null)
                 .build();

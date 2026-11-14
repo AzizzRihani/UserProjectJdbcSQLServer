@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,4 +29,9 @@ public class User implements Serializable {
     private List<Role> roles = new ArrayList<>();
     // Profil (menus) de l'utilisateur : null = aucun profil = menu vide. Charge avec l'utilisateur (LEFT JOIN).
     private Profil profil;
+    // Politique de mot de passe (parametres internes security.*) : echecs de connexion consecutifs, compte verrouille
+    // (leve par un administrateur) et date du dernier changement de mot de passe (base du calcul d'expiration).
+    private int failedAttempts;
+    private boolean locked;
+    private Instant passwordChangedAt;
 }

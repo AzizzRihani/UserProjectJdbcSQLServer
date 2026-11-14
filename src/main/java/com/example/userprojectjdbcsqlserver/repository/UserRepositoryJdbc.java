@@ -15,6 +15,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +48,11 @@ public class UserRepositoryJdbc implements UserRepository {
                     .valide(rs.getBoolean("profil_valide"))
                     .toutVoir(rs.getBoolean("profil_tout_voir"))
                     .build())
+            .failedAttempts(rs.getInt("failed_attempts"))
+            .locked(rs.getBoolean("locked"))
+            // datetime2 stocke en UTC (SYSUTCDATETIME) : lu en LocalDateTime puis pose en UTC, sans passer par
+            // java.sql.Timestamp qui l'interpreterait dans le fuseau de la JVM.
+            .passwordChangedAt(rs.getObject("password_changed_at", LocalDateTime.class).toInstant(ZoneOffset.UTC))
             .build();
 
     private record UserRole(long userId, Role role) {}
@@ -68,6 +75,7 @@ public class UserRepositoryJdbc implements UserRepository {
     // prefixees (u.) : "id" seul serait ambigu avec profils.id.
     private static final String SELECT_COLUMNS =
             "u.id, u.nom, u.prenom, u.surnom, u.email, u.age, u.num_tel, u.mot_de_passe, " +
+            "u.failed_attempts, u.locked, u.password_changed_at, " +
             "p.id AS profil_id, p.code AS profil_code, p.label AS profil_label, p.valide AS profil_valide, p.tout_voir AS profil_tout_voir";
     private static final String FROM_CLAUSE = "FROM dbo.utilisateurs u LEFT JOIN dbo.profils p ON p.id = u.profil_id";
 
@@ -194,8 +202,13 @@ public class UserRepositoryJdbc implements UserRepository {
 
     @Override
     public User update(User user) {
+        // password_changed_at n'avance que si le hash change (SQL Server evalue tout le SET avec les valeurs d'AVANT
+        // l'UPDATE : le CASE compare l'ancien hash stocke au nouveau). Une modification ordinaire de la fiche ne
+        // repousse donc pas l'expiration du mot de passe.
         String sql = "UPDATE dbo.utilisateurs SET nom = :nom, prenom = :prenom, surnom = :surnom, email = :email, " +
-                "age = :age, num_tel = :numTel, mot_de_passe = :motDePasse WHERE id = :id";
+                "age = :age, num_tel = :numTel, " +
+                "password_changed_at = CASE WHEN mot_de_passe <> :motDePasse THEN SYSUTCDATETIME() ELSE password_changed_at END, " +
+                "mot_de_passe = :motDePasse WHERE id = :id";
         MapSqlParameterSource params = toParams(user).addValue("id", user.getId());
         jdbc.update(sql, params);
         syncRoles(user);
@@ -241,6 +254,32 @@ public class UserRepositoryJdbc implements UserRepository {
     public void updateProfil(Long userId, Long profilId) {
         jdbc.update("UPDATE dbo.utilisateurs SET profil_id = :profilId WHERE id = :userId",
                 new MapSqlParameterSource().addValue("profilId", profilId).addValue("userId", userId));
+    }
+
+    // Un seul UPDATE : l'incrementation et le verrouillage au seuil sont atomiques (deux echecs simultanes ne peuvent
+    // pas se perdre). "AND locked = 0" : un compte deja verrouille ne compte plus d'echecs. OUTPUT renvoie l'etat
+    // final pour savoir si CET echec vient de verrouiller le compte.
+    @Override
+    public boolean recordFailedLogin(String email, int maxAttempts) {
+        String sql = "UPDATE dbo.utilisateurs SET failed_attempts = failed_attempts + 1, " +
+                "locked = CASE WHEN failed_attempts + 1 >= :maxAttempts THEN 1 ELSE locked END " +
+                "OUTPUT inserted.locked WHERE email = :email AND locked = 0";
+        List<Boolean> result = jdbc.query(sql,
+                new MapSqlParameterSource().addValue("email", email).addValue("maxAttempts", maxAttempts),
+                (rs, rowNum) -> rs.getBoolean(1));
+        return !result.isEmpty() && result.get(0);
+    }
+
+    @Override
+    public void resetFailedAttempts(Long userId) {
+        jdbc.update("UPDATE dbo.utilisateurs SET failed_attempts = 0 WHERE id = :id AND failed_attempts <> 0",
+                new MapSqlParameterSource("id", userId));
+    }
+
+    @Override
+    public void unlock(Long userId) {
+        jdbc.update("UPDATE dbo.utilisateurs SET locked = 0, failed_attempts = 0 WHERE id = :id",
+                new MapSqlParameterSource("id", userId));
     }
 
     @Override

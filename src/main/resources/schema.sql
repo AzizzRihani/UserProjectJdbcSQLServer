@@ -136,3 +136,54 @@ CREATE TABLE dbo.compte (
     CONSTRAINT CK_compte_type_compte CHECK (type_compte IN ('COURANT', 'EPARGNE')),
     CONSTRAINT FK_compte_banque FOREIGN KEY (banque_id) REFERENCES dbo.banque (id)
 );
+
+-- PARAMETRES INTERNES (modifiables a chaud par un administrateur), version reduite et typee de PARAMGENERAL du legacy.
+-- Contrairement a PARAMGENERAL (tout en chaine, sans borne ni audit), la DEFINITION d'un parametre (type, defaut,
+-- bornes, modifiable, redemarrage requis) est separee de sa VALEUR : seules les valeurs modifiees sont stockees,
+-- l'absence de ligne dans app_parameter signifie "valeur par defaut". Memes regles que plus haut : gardes
+-- "IF ... <instruction unique>" (script decoupe sur ";"). Pour un STRING, max_value = longueur maximale.
+IF OBJECT_ID('dbo.app_parameter_definition', 'U') IS NULL
+CREATE TABLE dbo.app_parameter_definition (
+    code             NVARCHAR(100) NOT NULL PRIMARY KEY,
+    category         NVARCHAR(50)  NOT NULL,
+    value_type       NVARCHAR(20)  NOT NULL,
+    default_value    NVARCHAR(500) NULL,
+    min_value        INT NULL,
+    max_value        INT NULL,
+    visible          BIT NOT NULL DEFAULT 1,
+    modifiable       BIT NOT NULL DEFAULT 1,
+    requires_restart BIT NOT NULL DEFAULT 0,
+    label            NVARCHAR(150) NOT NULL,
+    CONSTRAINT CK_app_parameter_value_type CHECK (value_type IN ('STRING', 'INT', 'BOOLEAN'))
+);
+
+IF OBJECT_ID('dbo.app_parameter', 'U') IS NULL
+CREATE TABLE dbo.app_parameter (
+    code       NVARCHAR(100) NOT NULL PRIMARY KEY,
+    value      NVARCHAR(500) NULL,
+    updated_by NVARCHAR(150) NULL,
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT FK_app_parameter_definition FOREIGN KEY (code) REFERENCES dbo.app_parameter_definition (code)
+);
+
+-- Piste d'audit : une ligne par modification (le legacy n'ecrit une entree d'audit que par ParamGeneral.store()).
+IF OBJECT_ID('dbo.app_parameter_audit', 'U') IS NULL
+CREATE TABLE dbo.app_parameter_audit (
+    id         BIGINT IDENTITY(1,1) PRIMARY KEY,
+    code       NVARCHAR(100) NOT NULL,
+    old_value  NVARCHAR(500) NULL,
+    new_value  NVARCHAR(500) NULL,
+    changed_by NVARCHAR(150) NOT NULL,
+    changed_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+);
+
+-- Politique de mot de passe / verrouillage : etat par utilisateur. password_changed_at demarre a la date de migration
+-- pour les comptes existants (la valeur par defaut est evaluee pour les lignes deja presentes).
+IF COL_LENGTH('dbo.utilisateurs', 'failed_attempts') IS NULL
+ALTER TABLE dbo.utilisateurs ADD failed_attempts INT NOT NULL CONSTRAINT DF_utilisateurs_failed_attempts DEFAULT 0;
+
+IF COL_LENGTH('dbo.utilisateurs', 'locked') IS NULL
+ALTER TABLE dbo.utilisateurs ADD locked BIT NOT NULL CONSTRAINT DF_utilisateurs_locked DEFAULT 0;
+
+IF COL_LENGTH('dbo.utilisateurs', 'password_changed_at') IS NULL
+ALTER TABLE dbo.utilisateurs ADD password_changed_at DATETIME2 NOT NULL CONSTRAINT DF_utilisateurs_password_changed_at DEFAULT SYSUTCDATETIME();

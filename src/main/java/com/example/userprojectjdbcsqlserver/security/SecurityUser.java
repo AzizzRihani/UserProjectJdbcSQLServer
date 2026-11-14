@@ -14,6 +14,9 @@ public class SecurityUser implements UserDetails {
 
     private final User user;
     private final Set<String> permissionCodes;
+    // Mot de passe expire (parametre interne security.passwordMaxAgeDays), calcule au chargement par
+    // CustomUserDetailsService : DaoAuthenticationProvider refuse alors la connexion APRES avoir verifie le mot de passe.
+    private final boolean credentialsExpired;
 
     // Les deux usages de ce constructeur a un seul argument (AuthService.loadPrincipal et
     // revokeAllAccessForUser) ne servent qu'a l'egalite dans SessionRegistry (par id, cf. equals
@@ -24,8 +27,13 @@ public class SecurityUser implements UserDetails {
     }
 
     public SecurityUser(User user, Set<String> permissionCodes) {
+        this(user, permissionCodes, false);
+    }
+
+    public SecurityUser(User user, Set<String> permissionCodes, boolean credentialsExpired) {
         this.user = user;
         this.permissionCodes = permissionCodes;
+        this.credentialsExpired = credentialsExpired;
     }
 
     public User getUser() {
@@ -53,6 +61,17 @@ public class SecurityUser implements UserDetails {
     @Override
     public String getUsername() {
         return user.getEmail();
+    }
+
+    // Compte verrouille apres trop d'echecs de connexion : refuse AVANT la verification du mot de passe (LockedException).
+    @Override
+    public boolean isAccountNonLocked() {
+        return !user.isLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return !credentialsExpired;
     }
 
     // Necessaire pour SessionRegistryImpl (session en memoire) : il indexe les sessions par principal

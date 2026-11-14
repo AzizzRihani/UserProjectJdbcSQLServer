@@ -1,5 +1,6 @@
 package com.example.userprojectjdbcsqlserver.controller;
 
+import com.example.userprojectjdbcsqlserver.dto.EnvironmentResponse;
 import com.example.userprojectjdbcsqlserver.dto.LoginRequest;
 import com.example.userprojectjdbcsqlserver.dto.LoginResponse;
 import com.example.userprojectjdbcsqlserver.dto.SessionResponse;
@@ -32,6 +33,12 @@ public class AuthController {
     @Operation(summary = "Authentification par email/mot de passe. Cree une session serveur (Spring Session JDBC) et pose un cookie de session httpOnly/secure")
     public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         return authService.login(request, httpRequest.getHeader("User-Agent"), httpRequest.getRemoteAddr(), httpRequest, httpResponse);
+    }
+
+    @GetMapping("/environment")
+    @Operation(summary = "Libelle de l'environnement (parametre interne ui.environmentLabel), public : affiche sur la page de connexion")
+    public EnvironmentResponse environment() {
+        return new EnvironmentResponse(authService.environmentLabel());
     }
 
     @GetMapping("/me")

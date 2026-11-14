@@ -48,10 +48,10 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // Duree d'inactivite avant expiration d'une session ; reutilisee par AuthService pour calculer
-    // la date d'expiration affichee dans /auth/sessions (SessionInformation ne l'expose pas).
-    public static final Duration SESSION_TIMEOUT = Duration.ofDays(3);
-
+    // La duree d'inactivite par defaut (conteneur + cookie) et les origines CORS sont des PARAMETRES D'INITIALISATION
+    // (AppProperties, application.yml). La duree reellement appliquee a une nouvelle session vient de la base
+    // (parametre interne security.sessionTimeoutMinutes), posee par AuthService au login.
+    private final AppProperties appProperties;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
     private final RestLogoutSuccessHandler restLogoutSuccessHandler;
@@ -60,13 +60,15 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+    public SecurityConfig(AppProperties appProperties,
+                           RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                            RestAccessDeniedHandler restAccessDeniedHandler,
                            RestLogoutSuccessHandler restLogoutSuccessHandler,
                            RestSessionInformationExpiredStrategy restSessionInformationExpiredStrategy,
                            CsrfCookieFilter csrfCookieFilter,
                            UserRepository userRepository,
                            RoleRepository roleRepository) {
+        this.appProperties = appProperties;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.restAccessDeniedHandler = restAccessDeniedHandler;
         this.restLogoutSuccessHandler = restLogoutSuccessHandler;
@@ -118,8 +120,9 @@ public class SecurityConfig {
     @Bean
     public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> sessionCookieCustomizer() {
         return factory -> {
+            Duration defaultTimeout = appProperties.session().defaultTimeout();
             Session session = new Session();
-            session.setTimeout(SESSION_TIMEOUT);
+            session.setTimeout(defaultTimeout);
             Cookie cookie = session.getCookie();
             cookie.setName("SESSION");
             cookie.setHttpOnly(true);
@@ -128,7 +131,7 @@ public class SecurityConfig {
             // "same-site" au sens de Chrome malgre des ports differents, donc Lax suffit et est bien
             // envoye sur les appels fetch/XHR de l'app (Lax ne bloque que les requetes cross-site).
             cookie.setSameSite(Cookie.SameSite.LAX);
-            cookie.setMaxAge(SESSION_TIMEOUT);
+            cookie.setMaxAge(defaultTimeout);
             factory.setSession(session);
         };
     }
@@ -179,8 +182,12 @@ public class SecurityConfig {
                         .authenticationEntryPoint(restAuthenticationEntryPoint)
                         .accessDeniedHandler(restAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()
+                        // /auth/environment : libelle d'environnement affiche sur la page de connexion (avant login).
+                        .requestMatchers("/auth/login", "/auth/environment").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        // Actuator : sonde de sante ouverte, configuration effective reservee a l'administration des parametres.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasAuthority("PARAMETER_MANAGE")
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
@@ -195,7 +202,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://localhost:4200"));
+        configuration.setAllowedOrigins(appProperties.cors().allowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

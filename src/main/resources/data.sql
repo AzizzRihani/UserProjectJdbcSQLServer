@@ -58,6 +58,9 @@ INSERT INTO dbo.permissions (code, module, label) VALUES ('PROFILE_MANAGE', 'ADM
 IF NOT EXISTS (SELECT 1 FROM dbo.permissions WHERE code = 'USER_ASSIGN_PROFILE')
 INSERT INTO dbo.permissions (code, module, label) VALUES ('USER_ASSIGN_PROFILE', 'USER', 'Affecter un profil a un utilisateur');
 
+IF NOT EXISTS (SELECT 1 FROM dbo.permissions WHERE code = 'PARAMETER_MANAGE')
+INSERT INTO dbo.permissions (code, module, label) VALUES ('PARAMETER_MANAGE', 'ADMINISTRATION', 'Gerer les parametres internes de l''application');
+
 -- Profils "But" : arbre des fonctions (menus) sur 2 niveaux, groupes d'abord puis feuilles (parent retrouve par
 -- code). IF NOT EXISTS ne met jamais a jour une ligne existante : si un libelle ou une route change ici, ajouter
 -- un UPDATE idempotent (les libelles affiches sont traduits cote frontend, cles menu.<CODE>).
@@ -81,6 +84,41 @@ INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'ROLES',
 
 IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'PROFILS')
 INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'PROFILS', 'Profils', id, '/profiles', 3 FROM dbo.fonctions WHERE code = 'ADMINISTRATION';
+
+IF NOT EXISTS (SELECT 1 FROM dbo.fonctions WHERE code = 'PARAMETRES')
+INSERT INTO dbo.fonctions (code, label, parent_id, route, ordre) SELECT 'PARAMETRES', 'Parametres', id, '/parameters', 4 FROM dbo.fonctions WHERE code = 'ADMINISTRATION';
+
+-- Parametres internes : definitions (type, defaut, bornes, redemarrage requis). IF NOT EXISTS ne met jamais a jour une
+-- definition existante : pour changer une borne ou un defaut apres coup, ajouter un UPDATE idempotent ici.
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'security.maxFailedAttempts')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('security.maxFailedAttempts', 'security', 'INT', '3', 1, 10, 0, 'Echecs de connexion avant verrouillage du compte');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'security.passwordMaxAgeDays')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('security.passwordMaxAgeDays', 'security', 'INT', '90', 0, 3650, 0, 'Duree de validite du mot de passe en jours (0 = jamais)');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'security.sessionTimeoutMinutes')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('security.sessionTimeoutMinutes', 'security', 'INT', '4320', 5, 10080, 0, 'Inactivite avant expiration d''une session en minutes (nouvelles sessions)');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'display.maxRowsPerPage')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('display.maxRowsPerPage', 'display', 'INT', '100', 10, 1000, 0, 'Nombre maximal de lignes par page');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'ui.environmentLabel')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('ui.environmentLabel', 'display', 'STRING', 'DEV', NULL, 20, 0, 'Libelle de l''environnement (bandeau)');
+
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'module.comptes.enabled')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('module.comptes.enabled', 'modules', 'BOOLEAN', 'true', NULL, NULL, 0, 'Module Comptes active');
+
+-- mail.disabled : stocke mais sans consommateur dans le prototype (pas d'envoi de mail). requires_restart = 1 comme le
+-- service d'envoi du legacy, demarre une seule fois : montre la mention "redemarrage requis" renvoyee a la modification.
+IF NOT EXISTS (SELECT 1 FROM dbo.app_parameter_definition WHERE code = 'mail.disabled')
+INSERT INTO dbo.app_parameter_definition (code, category, value_type, default_value, min_value, max_value, requires_restart, label)
+VALUES ('mail.disabled', 'mail', 'BOOLEAN', 'true', NULL, NULL, 1, 'Envoi des notifications par mail desactive');
 
 -- SUPER_ADMIN = "profil 0" : voit toutes les fonctions (drapeau tout_voir), aucune ligne dans profil_fonctions.
 IF NOT EXISTS (SELECT 1 FROM dbo.profils WHERE code = 'SUPER_ADMIN')

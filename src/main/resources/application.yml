@@ -3,7 +3,7 @@ server:
   ssl:
     enabled: true
     key-store: classpath:keystore/localhost.p12
-    key-store-password: changeit-dev
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:changeit-dev}
     key-store-type: PKCS12
     key-alias: usermanagement
 
@@ -14,15 +14,40 @@ spring:
     basename: messages
     encoding: UTF-8
     fallback-to-system-locale: false
+  # PARAMETRES D'INITIALISATION de la connexion : surchargeables sans recompiler par variables d'environnement
+  # (DB_URL, DB_USER, DB_PASSWORD). Les valeurs apres ":" ne sont que des defauts de DEVELOPPEMENT : le profil
+  # "prod" (application-prod.yml) n'en a aucun, tout y vient de l'environnement ou de secrets montes.
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=UserProject2;encrypt=false;trustServerCertificate=true
-    username: aziz
-    password: '!!Dat@Log8061**'
+    url: ${DB_URL:jdbc:sqlserver://localhost:1433;databaseName=UserProject2;encrypt=false;trustServerCertificate=true}
+    username: ${DB_USER:aziz}
+    password: '${DB_PASSWORD:!!Dat@Log8061**}'
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   sql:
     init:
       mode: always
       continue-on-error: true
+
+# Parametres d'initialisation de l'application (classe AppProperties : types et valides au demarrage).
+# Les parametres que l'administrateur modifie a chaud vivent dans la base (ecran "Parametres").
+app:
+  session:
+    default-timeout: 7d
+  cors:
+    allowed-origins:
+      - https://localhost:4200
+  parameters:
+    cache-ttl: 5m
+
+# Configuration effective visible (GET /actuator/configprops, reserve a la permission PARAMETER_MANAGE ;
+# les secrets sont masques par ActuatorConfig). Dans le legacy, la configuration effective est invisible.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,configprops
+  endpoint:
+    configprops:
+      show-values: always
 
 springdoc:
   swagger-ui:

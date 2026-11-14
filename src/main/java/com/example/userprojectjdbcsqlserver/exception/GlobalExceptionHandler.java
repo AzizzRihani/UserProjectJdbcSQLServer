@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -40,6 +42,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
         String message = messageSource.getMessage("error.bad.credentials", null, LocaleContextHolder.getLocale());
         return build(HttpStatus.UNAUTHORIZED, message, request);
+    }
+
+    // Compte verrouille (security.maxFailedAttempts) : levee AVANT la verification du mot de passe, donc meme avec le bon
+    // mot de passe. Code machine pour que le frontend distingue ce cas d'un simple mauvais mot de passe.
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLocked(LockedException ex, HttpServletRequest request) {
+        String message = messageSource.getMessage("error.account.locked", null, LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(HttpStatus.UNAUTHORIZED, message, request.getRequestURI(), "ACCOUNT_LOCKED"));
+    }
+
+    // Mot de passe expire (security.passwordMaxAgeDays) : levee APRES un mot de passe correct, donc aucune information
+    // n'est revelee a quelqu'un qui ne le connait pas.
+    @ExceptionHandler(CredentialsExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleCredentialsExpired(CredentialsExpiredException ex, HttpServletRequest request) {
+        String message = messageSource.getMessage("error.password.expired", null, LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(HttpStatus.UNAUTHORIZED, message, request.getRequestURI(), "PASSWORD_EXPIRED"));
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class, IllegalArgumentException.class})

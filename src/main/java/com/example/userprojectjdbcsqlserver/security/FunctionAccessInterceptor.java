@@ -3,6 +3,7 @@ package com.example.userprojectjdbcsqlserver.security;
 import com.example.userprojectjdbcsqlserver.entity.Profil;
 import com.example.userprojectjdbcsqlserver.exception.FunctionAccessDeniedException;
 import com.example.userprojectjdbcsqlserver.repository.ProfilRepository;
+import com.example.userprojectjdbcsqlserver.service.ParameterService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +25,11 @@ import java.util.List;
 public class FunctionAccessInterceptor implements HandlerInterceptor {
 
     private final ProfilRepository profilRepository;
+    private final ParameterService parameterService;
 
-    public FunctionAccessInterceptor(ProfilRepository profilRepository) {
+    public FunctionAccessInterceptor(ProfilRepository profilRepository, ParameterService parameterService) {
         this.profilRepository = profilRepository;
+        this.parameterService = parameterService;
     }
 
     @Override
@@ -47,9 +50,18 @@ public class FunctionAccessInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // Module desactive par un parametre interne (module.<fonction>.enabled = false) : la fonction est refusee a tous,
+        // quel que soit le profil, sans toucher aux profils. Lu a chaque requete (cache du service de parametres).
+        List<String> enabled = required.stream().filter(parameterService::isModuleEnabled).toList();
+        if (enabled.isEmpty()) {
+            log.warn("Acces refuse : module desactive {} : utilisateur '{}', {} {}, ip {}",
+                    required, principal.getUsername(), request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
+            throw new FunctionAccessDeniedException();
+        }
+
         // principal.getUser() vient d'etre recharge par PermissionRefreshFilter : le profil est celui d'AUJOURD'HUI.
         Profil profil = principal.getUser().getProfil();
-        if (profil != null && profilRepository.hasAnyFunction(profil.getId(), required)) {
+        if (profil != null && profilRepository.hasAnyFunction(profil.getId(), enabled)) {
             return true;
         }
 

@@ -23,10 +23,13 @@ public class CompteService {
 
     private final CompteRepository compteRepository;
     private final BanqueRepository banqueRepository;
+    private final PageSizeLimiter pageSizeLimiter;
 
-    public CompteService(CompteRepository compteRepository, BanqueRepository banqueRepository) {
+    public CompteService(CompteRepository compteRepository, BanqueRepository banqueRepository,
+                         PageSizeLimiter pageSizeLimiter) {
         this.compteRepository = compteRepository;
         this.banqueRepository = banqueRepository;
+        this.pageSizeLimiter = pageSizeLimiter;
     }
 
     public List<CompteResponse> findAll() {
@@ -36,7 +39,7 @@ public class CompteService {
     }
 
     public Page<Compte> getAllPaginated(Pageable pageable) {
-        return compteRepository.findAllP(pageable);
+        return compteRepository.findAllP(pageSizeLimiter.clamp(pageable));
     }
 
     public CompteResponse findById(Long id) {

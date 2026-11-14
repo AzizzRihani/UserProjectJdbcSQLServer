@@ -22,6 +22,8 @@ public class UserResponse {
     private List<RoleSummary> roles;
     // Profil (menus) : null = aucun profil = menu vide.
     private ProfilSummary profil;
+    // Compte verrouille apres trop d'echecs de connexion (parametre security.maxFailedAttempts) : leve par unlock.
+    private boolean locked;
 
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()
@@ -34,6 +36,7 @@ public class UserResponse {
                 .numTel(user.getNumTel())
                 .roles(RoleSummary.fromEntities(user.getRoles()))
                 .profil(ProfilSummary.fromEntity(user.getProfil()))
+                .locked(user.isLocked())
                 .build();
     }
 }

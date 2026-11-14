@@ -40,13 +40,15 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final ProfilRepository profilRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PageSizeLimiter pageSizeLimiter;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository, ProfilRepository profilRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder, PageSizeLimiter pageSizeLimiter) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.profilRepository = profilRepository;
         this.passwordEncoder = passwordEncoder;
+        this.pageSizeLimiter = pageSizeLimiter;
     }
 
     public List<UserResponse> findAll(String actorEmail) {
@@ -58,7 +60,7 @@ public class UserService {
 
     public Page<UserResponse> getAllPaginated(Pageable pageable, String actorEmail) {
         log.info("Utilisateur '{}' a consulte la liste paginee des utilisateurs", actorEmail);
-        return userRepository.findAllP(pageable).map(UserResponse::fromEntity);
+        return userRepository.findAllP(pageSizeLimiter.clamp(pageable)).map(UserResponse::fromEntity);
     }
 
     public UserResponse findById(Long id, String actorEmail) {
@@ -171,6 +173,17 @@ public class UserService {
         log.info("Utilisateur '{}' a modifie le profil de '{}' (id={}) : {} -> {}", actor.getUsername(), target.getEmail(), targetId,
                 oldProfil != null ? oldProfil.getCode() : "aucun", newProfil != null ? newProfil.getCode() : "aucun");
         return UserResponse.fromEntity(getOrThrow(targetId));
+    }
+
+    // Leve le verrouillage pose apres trop d'echecs de connexion (parametre security.maxFailedAttempts) et remet le
+    // compteur a zero. Protege par USER_UPDATE : l'administrateur voit le compte verrouille dans la liste.
+    @Transactional
+    public UserResponse unlock(Long id, String actorEmail) {
+        User target = getOrThrow(id);
+        userRepository.unlock(id);
+        log.info("Utilisateur '{}' a deverrouille le compte de '{}' (id={}, etait {})", actorEmail, target.getEmail(), id,
+                target.isLocked() ? "verrouille" : "deja deverrouille");
+        return UserResponse.fromEntity(getOrThrow(id));
     }
 
     private static boolean isToutVoir(Profil profil) {

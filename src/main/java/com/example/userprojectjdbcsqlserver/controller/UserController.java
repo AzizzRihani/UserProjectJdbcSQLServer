@@ -87,6 +87,13 @@ public class UserController {
         return userService.assignProfile(id, request.getProfilId(), currentUser);
     }
 
+    @PutMapping("/{id}/unlock")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @Operation(summary = "Deverrouiller un compte verrouille apres trop d'echecs de connexion (remet le compteur a zero)")
+    public UserResponse unlock(@PathVariable Long id, @AuthenticationPrincipal SecurityUser currentUser) {
+        return userService.unlock(id, currentUser.getUsername());
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
