@@ -1,0 +1,18 @@
+# Profil "prod" (SPRING_PROFILES_ACTIVE=prod) : AUCUNE valeur sensible dans le depot.
+# Tout vient des variables d'environnement (ou de secrets montes, cf. spring.config.import=configtree:...).
+# Ces entrees remplacent celles d'application.yml, qui garde des defauts de developpement : ici, une variable
+# absente ne retombe sur AUCUN defaut. Le texte litteral "${DB_URL}" est alors rejete au demarrage (verifie :
+# "Driver ... claims to not accept jdbcUrl, ${DB_URL}"), donc l'echec est immediat, pas a la premiere requete.
+server:
+  ssl:
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
