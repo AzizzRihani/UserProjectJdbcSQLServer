@@ -187,3 +187,20 @@ ALTER TABLE dbo.utilisateurs ADD locked BIT NOT NULL CONSTRAINT DF_utilisateurs_
 
 IF COL_LENGTH('dbo.utilisateurs', 'password_changed_at') IS NULL
 ALTER TABLE dbo.utilisateurs ADD password_changed_at DATETIME2 NOT NULL CONSTRAINT DF_utilisateurs_password_changed_at DEFAULT SYSUTCDATETIME();
+
+
+-- Connexion SSO OIDC : lien entre un utilisateur local et son identite chez un fournisseur (Google, Microsoft).
+-- (provider, subject) est l'identifiant STABLE du compte chez le fournisseur : apres la 1re connexion (rapprochement
+-- par e-mail verifie), la connexion ne depend plus de l'e-mail. Supprimer l'utilisateur supprime ses liens.
+IF OBJECT_ID('dbo.user_identity', 'U') IS NULL
+CREATE TABLE dbo.user_identity (
+    id            BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id       BIGINT NOT NULL,
+    provider      NVARCHAR(30) NOT NULL,
+    subject       NVARCHAR(255) NOT NULL,
+    email         NVARCHAR(150) NULL,
+    linked_at     DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    last_login_at DATETIME2 NULL,
+    CONSTRAINT FK_user_identity_user FOREIGN KEY (user_id) REFERENCES dbo.utilisateurs (id) ON DELETE CASCADE,
+    CONSTRAINT UQ_user_identity UNIQUE (provider, subject)
+);

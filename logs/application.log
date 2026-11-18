@@ -1,2 +1,261 @@
-2026-11-14T11:44:38.616+01:00  WARN 14608 --- [UserProjectJdbcSQLServer] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=14h36m16s283ms309µs200ns).
-2026-11-14T11:47:23.533+01:00  WARN 14608 --- [UserProjectJdbcSQLServer] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m49s680ms165µs700ns).
+2026-11-19T00:37:17.630+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : Starting UserProjectJdbcSqlServerApplication using Java 17.0.12 with PID 26648 (D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes started by arihani in D:\UserProjectStateful\UserProjectJdbcSQLServer)
+2026-11-19T00:37:17.644+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : No active profile set, falling back to 1 default profile: "default"
+2026-11-19T00:37:20.587+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-19T00:37:21.204+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 105c5e03-9801-487c-aaa4-b83b85074356
+2026-11-19T00:37:21.206+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-19T00:37:22.122+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (https)
+2026-11-19T00:37:22.149+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-19T00:37:22.149+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-11-19T00:37:22.328+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 4561 ms
+2026-11-19T00:37:22.707+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-11-19T00:37:22.888+01:00  WARN 26648 --- [UserProjectJdbcSQLServer] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+2026-11-19T00:37:22.893+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-19T00:37:22.903+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-19T00:37:22.907+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-11-19T00:37:22.938+01:00  INFO 26648 --- [UserProjectJdbcSQLServer] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-11-19T00:37:22.959+01:00 ERROR 26648 --- [UserProjectJdbcSQLServer] [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1380) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1219) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1191) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.1.0.jar:4.1.0]
+	at com.example.userprojectjdbcsqlserver.UserProjectJdbcSqlServerApplication.main(UserProjectJdbcSqlServerApplication.java:13) ~[classes/:na]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:645) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1360) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1232) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1711) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1658) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 21 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:183) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:72) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:152) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 35 common frames omitted
+Caused by: java.lang.IllegalStateException: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.require(SsoConfig.java:77) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.microsoft(SsoConfig.java:55) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.clientRegistrationRepository(SsoConfig.java:35) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.CGLIB$clientRegistrationRepository$0(<generated>) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$FastClass$$1.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:258) ~[spring-core-7.0.8.jar:7.0.8]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:398) ~[spring-context-7.0.8.jar:7.0.8]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.clientRegistrationRepository(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:155) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 38 common frames omitted
+
+2026-11-19T00:37:37.258+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : Starting UserProjectJdbcSqlServerApplication using Java 17.0.12 with PID 35508 (D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes started by arihani in D:\UserProjectStateful\UserProjectJdbcSQLServer)
+2026-11-19T00:37:37.265+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : No active profile set, falling back to 1 default profile: "default"
+2026-11-19T00:37:39.719+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-19T00:37:40.136+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 17ea5090-052f-4218-8533-55967e3d1a84
+2026-11-19T00:37:40.138+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-19T00:37:40.898+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (https)
+2026-11-19T00:37:40.914+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-19T00:37:40.916+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-11-19T00:37:41.023+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 3647 ms
+2026-11-19T00:37:41.259+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-11-19T00:37:41.393+01:00  WARN 35508 --- [UserProjectJdbcSQLServer] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+2026-11-19T00:37:41.396+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-19T00:37:41.399+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-19T00:37:41.402+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-11-19T00:37:41.422+01:00  INFO 35508 --- [UserProjectJdbcSQLServer] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-11-19T00:37:41.434+01:00 ERROR 35508 --- [UserProjectJdbcSQLServer] [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1380) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1219) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1191) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.1.0.jar:4.1.0]
+	at com.example.userprojectjdbcsqlserver.UserProjectJdbcSqlServerApplication.main(UserProjectJdbcSqlServerApplication.java:13) ~[classes/:na]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:645) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1360) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1232) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1711) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1658) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 21 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:183) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:72) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:152) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 35 common frames omitted
+Caused by: java.lang.IllegalStateException: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.require(SsoConfig.java:77) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.microsoft(SsoConfig.java:55) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.clientRegistrationRepository(SsoConfig.java:35) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.CGLIB$clientRegistrationRepository$0(<generated>) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$FastClass$$1.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:258) ~[spring-core-7.0.8.jar:7.0.8]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:398) ~[spring-context-7.0.8.jar:7.0.8]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.clientRegistrationRepository(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:155) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 38 common frames omitted
+
+2026-11-19T00:39:02.756+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : Starting UserProjectJdbcSqlServerApplication using Java 17.0.12 with PID 28452 (D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes started by arihani in D:\UserProjectStateful\UserProjectJdbcSQLServer)
+2026-11-19T00:39:02.761+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : No active profile set, falling back to 1 default profile: "default"
+2026-11-19T00:39:05.088+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-19T00:39:05.516+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: fb7a2a6e-a84d-4271-a575-56256348de26
+2026-11-19T00:39:05.518+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-19T00:39:06.219+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (https)
+2026-11-19T00:39:06.237+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-19T00:39:06.237+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-11-19T00:39:06.381+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 3541 ms
+2026-11-19T00:39:06.648+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-11-19T00:39:06.800+01:00  WARN 28452 --- [UserProjectJdbcSQLServer] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+2026-11-19T00:39:06.802+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-19T00:39:06.807+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-19T00:39:06.809+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-11-19T00:39:06.830+01:00  INFO 28452 --- [UserProjectJdbcSQLServer] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-11-19T00:39:06.845+01:00 ERROR 28452 --- [UserProjectJdbcSQLServer] [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'ssoLoginConfigurer' defined in file [D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes\com\example\userprojectjdbcsqlserver\security\SsoLoginConfigurer.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1380) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1219) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1191) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.8.jar:7.0.8]
+	at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.1.0.jar:4.1.0]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.1.0.jar:4.1.0]
+	at com.example.userprojectjdbcsqlserver.UserProjectJdbcSqlServerApplication.main(UserProjectJdbcSqlServerApplication.java:13) ~[classes/:na]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [com/example/userprojectjdbcsqlserver/config/SsoConfig.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:645) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1360) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1232) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1711) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1658) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 21 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:183) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:72) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:152) ~[spring-beans-7.0.8.jar:7.0.8]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 35 common frames omitted
+Caused by: java.lang.IllegalStateException: MICROSOFT_TENANT_ID (app.sso.microsoft.tenant-id) est obligatoire quand MICROSOFT_CLIENT_ID est renseigne
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.require(SsoConfig.java:77) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.microsoft(SsoConfig.java:55) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig.clientRegistrationRepository(SsoConfig.java:35) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.CGLIB$clientRegistrationRepository$0(<generated>) ~[classes/:na]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$FastClass$$1.invoke(<generated>) ~[classes/:na]
+	at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:258) ~[spring-core-7.0.8.jar:7.0.8]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:398) ~[spring-context-7.0.8.jar:7.0.8]
+	at com.example.userprojectjdbcsqlserver.config.SsoConfig$$SpringCGLIB$$0.clientRegistrationRepository(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:155) ~[spring-beans-7.0.8.jar:7.0.8]
+	... 38 common frames omitted
+
+2026-11-19T00:41:36.633+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : Starting UserProjectJdbcSqlServerApplication using Java 17.0.12 with PID 35264 (D:\UserProjectStateful\UserProjectJdbcSQLServer\target\classes started by arihani in D:\UserProjectStateful\UserProjectJdbcSQLServer)
+2026-11-19T00:41:36.636+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : No active profile set, falling back to 1 default profile: "default"
+2026-11-19T00:41:38.588+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-19T00:41:39.009+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: da4c5bf2-2496-4250-bff5-00712c06add9
+2026-11-19T00:41:39.011+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-19T00:41:39.735+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (https)
+2026-11-19T00:41:39.751+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-19T00:41:39.751+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-11-19T00:41:39.858+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 3159 ms
+2026-11-19T00:41:40.131+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-11-19T00:41:41.651+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-19T00:41:41.889+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.a.t.util.net.NioEndpoint.certificate   : Connector [https-jsse-nio-8088], TLS virtual host [_default_], certificate type [UNDEFINED] configured from keystore [Set directly - location unknown] using alias [usermanagement] with trust store [null]
+2026-11-19T00:41:41.903+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8088 (https) with context path '/'
+2026-11-19T00:41:41.915+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [main] .e.u.UserProjectJdbcSqlServerApplication : Started UserProjectJdbcSqlServerApplication in 5.957 seconds (process running for 6.649)
+2026-11-19T00:41:47.779+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-10] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-19T00:41:47.781+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-10] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-19T00:41:47.785+01:00  INFO 35264 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-10] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-11-19T00:42:03.376+01:00  WARN 35264 --- [UserProjectJdbcSQLServer] [https-jsse-nio-8088-exec-2] c.e.u.s.SsoAuthenticationFailureHandler  : Connexion SSO refusee (SSO_USER_UNKNOWN) : aucun utilisateur local pour azizrihani.pro@outlook.fr

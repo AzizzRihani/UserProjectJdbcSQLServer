@@ -8,6 +8,8 @@ import com.example.userprojectjdbcsqlserver.security.RestAccessDeniedHandler;
 import com.example.userprojectjdbcsqlserver.security.RestAuthenticationEntryPoint;
 import com.example.userprojectjdbcsqlserver.security.RestLogoutSuccessHandler;
 import com.example.userprojectjdbcsqlserver.security.RestSessionInformationExpiredStrategy;
+import com.example.userprojectjdbcsqlserver.security.SsoLoginConfigurer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
@@ -140,7 +142,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                      SessionAuthenticationStrategy sessionAuthenticationStrategy,
                                                      SecurityContextRepository securityContextRepository,
-                                                     SessionRegistry sessionRegistry) throws Exception {
+                                                     SessionRegistry sessionRegistry,
+                                                     ObjectProvider<SsoLoginConfigurer> ssoLoginConfigurer) throws Exception {
         http
                 // Le cookie de session porte desormais l'authentification sur CHAQUE requete: le CSRF redevient
                 // necessaire sur toute l'API.
@@ -184,6 +187,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // /auth/environment : libelle d'environnement affiche sur la page de connexion (avant login).
                         .requestMatchers("/auth/login", "/auth/environment").permitAll()
+                        // SSO OIDC : liste des fournisseurs actifs (boutons de la page de connexion), depart du flux
+                        // vers le fournisseur et retour de celui-ci (code d'autorisation), tous avant connexion.
+                        .requestMatchers("/auth/sso/providers", "/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Actuator : sonde de sante ouverte, configuration effective reservee a l'administration des parametres.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
@@ -195,6 +201,12 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .deleteCookies("SESSION")
                         .logoutSuccessHandler(restLogoutSuccessHandler));
+
+        // Connexion SSO (Google / Microsoft) : seulement si app.sso.enabled=true.
+        SsoLoginConfigurer sso = ssoLoginConfigurer.getIfAvailable();
+        if (sso != null) {
+            sso.configure(http);
+        }
 
         return http.build();
     }

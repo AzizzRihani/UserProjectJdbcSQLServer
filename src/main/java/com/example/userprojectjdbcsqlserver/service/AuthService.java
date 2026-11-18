@@ -115,16 +115,23 @@ public class AuthService {
             userRepository.resetFailedAttempts(user.getId());
         }
 
-        // Duree d'inactivite = parametre interne security.sessionTimeoutMinutes lu A CE MOMENT : ne s'applique qu'aux
-        // sessions creees apres une modification du parametre (les sessions deja ouvertes gardent leur duree).
+        openSession(user, userAgent, ipAddress, httpRequest, "mot de passe");
+        return toLoginResponse(user);
+    }
+
+    /**
+     * Fin de connexion commune au login par mot de passe et au SSO : duree d'inactivite de la session (parametre interne
+     * security.sessionTimeoutMinutes lu A CE MOMENT : ne s'applique qu'aux sessions creees apres une modification du
+     * parametre), metadonnees affichees dans /auth/sessions et journal.
+     */
+    public void openSession(User user, String userAgent, String ipAddress, HttpServletRequest httpRequest, String via) {
         Duration sessionTimeout = Duration.ofMinutes(parameterService.getInt(ParameterService.SESSION_TIMEOUT_MINUTES));
         HttpSession session = httpRequest.getSession();
         session.setMaxInactiveInterval((int) sessionTimeout.toSeconds());
         sessionMetadataStore.put(session.getId(), userAgent, ipAddress, sessionTimeout);
 
-        log.info("Connexion reussie : utilisateur '{}' (roles {})", user.getEmail(),
+        log.info("Connexion reussie ({}) : utilisateur '{}' (roles {})", via, user.getEmail(),
                 user.getRoles().stream().map(Role::getCode).collect(Collectors.joining("+")));
-        return toLoginResponse(user);
     }
 
     // Parametre interne security.maxFailedAttempts : au N-ieme echec consecutif le compte est verrouille jusqu'a ce

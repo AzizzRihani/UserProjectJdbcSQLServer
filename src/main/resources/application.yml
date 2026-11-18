@@ -37,6 +37,19 @@ app:
       - https://localhost:4200
   parameters:
     cache-ttl: 5m
+  # Connexion SSO OIDC (Google, Microsoft Entra ID), desactivee par defaut. Pour l'activer : SSO_ENABLED=true et les
+  # identifiants des applications creees chez les fournisseurs (voir sso_google_microsoft_guide.md). Aucun secret ici.
+  sso:
+    enabled: ${SSO_ENABLED:false}
+    frontend-url: ${SSO_FRONTEND_URL:https://localhost:4200}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    microsoft:
+      tenant-id: ${MICROSOFT_TENANT_ID:}
+      client-id: ${MICROSOFT_CLIENT_ID:}
+      client-secret: ${MICROSOFT_CLIENT_SECRET:}
+      authority: ${MICROSOFT_AUTHORITY:https://login.microsoftonline.com}
 
 # Configuration effective visible (GET /actuator/configprops, reserve a la permission PARAMETER_MANAGE ;
 # les secrets sont masques par ActuatorConfig). Dans le legacy, la configuration effective est invisible.

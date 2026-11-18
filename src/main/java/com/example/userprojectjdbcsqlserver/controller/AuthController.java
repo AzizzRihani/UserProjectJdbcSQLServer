@@ -4,6 +4,9 @@ import com.example.userprojectjdbcsqlserver.dto.EnvironmentResponse;
 import com.example.userprojectjdbcsqlserver.dto.LoginRequest;
 import com.example.userprojectjdbcsqlserver.dto.LoginResponse;
 import com.example.userprojectjdbcsqlserver.dto.SessionResponse;
+import com.example.userprojectjdbcsqlserver.dto.SsoProviderResponse;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import com.example.userprojectjdbcsqlserver.security.SecurityUser;
 import com.example.userprojectjdbcsqlserver.service.AuthService;
 import com.example.userprojectjdbcsqlserver.security.FunctionExempt;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -24,9 +28,13 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    // Absent quand le SSO est desactive (app.sso.enabled=false).
+    private final ObjectProvider<InMemoryClientRegistrationRepository> clientRegistrations;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          ObjectProvider<InMemoryClientRegistrationRepository> clientRegistrations) {
         this.authService = authService;
+        this.clientRegistrations = clientRegistrations;
     }
 
     @PostMapping("/login")
@@ -39,6 +47,19 @@ public class AuthController {
     @Operation(summary = "Libelle de l'environnement (parametre interne ui.environmentLabel), public : affiche sur la page de connexion")
     public EnvironmentResponse environment() {
         return new EnvironmentResponse(authService.environmentLabel());
+    }
+
+    @GetMapping("/sso/providers")
+    @Operation(summary = "Fournisseurs SSO actifs (Google, Microsoft), public : boutons de la page de connexion. Liste vide si le SSO est desactive")
+    public List<SsoProviderResponse> ssoProviders() {
+        InMemoryClientRegistrationRepository repository = clientRegistrations.getIfAvailable();
+        if (repository == null) {
+            return List.of();
+        }
+        List<SsoProviderResponse> providers = new ArrayList<>();
+        repository.forEach(registration ->
+                providers.add(new SsoProviderResponse(registration.getRegistrationId(), registration.getClientName())));
+        return providers;
     }
 
     @GetMapping("/me")
